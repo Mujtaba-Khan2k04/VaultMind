@@ -132,18 +132,6 @@ test_core.py, test_app.py, conftest.py, demo_cli.py   tests and demo
 - OCR for scanned PDFs
 - Persistent login-attempt tracking (currently reset when the server restarts)
 
-## Team
-
-Built by a four-team group, matching the original project brief:
-
-| Team | Focus |
-|---|---|
-| Web Dev | Portal interface |
-| Python | Backend, API and database |
-| AI | RAG search engine |
-| Cyber Security | Access control, encryption, auditing |
-
-Team members: `[add names and GitHub profiles]`
 
 ## Acknowledgements
 
