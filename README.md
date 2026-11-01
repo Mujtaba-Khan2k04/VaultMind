@@ -132,7 +132,6 @@ test_core.py, test_app.py, conftest.py, demo_cli.py   tests and demo
 - OCR for scanned PDFs
 - Persistent login-attempt tracking (currently reset when the server restarts)
 
-
 ## Acknowledgements
 
 Built during the **Cybersecurity Fundamentals Course** bootcamp at **Bano Qabil, Pakistan**. Thanks to our instructors and mentors.
