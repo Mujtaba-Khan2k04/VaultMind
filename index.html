@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultMind</title>
+<style>
+:root{--deep:#0e3a45;--deep2:#154c5a;--ink:#14202b;--mute:#667584;--line:#dde4ea;--bg:#eef2f5;--card:#fff;--teal:#13806f;--teal-d:#0d6659;--brass:#b8801f;--brass-bg:#fbf1dc;--red:#b2382e;--ok:#1b7a48;
+--serif:Georgia,'Times New Roman',serif;--sans:'Segoe UI',system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0}
+button,input,select{font:inherit}
+.hidden{display:none!important}
+svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* buttons & inputs */
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:8px;padding:10px 18px;background:var(--teal);color:#fff;font-weight:600;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--teal-d)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn.ghost:hover{background:#f4f7f9}
+.btn.sm{padding:5px 12px;font-size:.82rem}.btn.danger{background:#fff;color:var(--red);border:1px solid #efc9c5}.btn.danger:hover{background:#fdf1f0}
+.field{display:block;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:12px}
+.field:focus{outline:2px solid #bfe3dc;border-color:var(--teal)}
+label.lbl{display:block;font-size:.85rem;color:var(--mute);margin-bottom:4px}
+.msg{min-height:1.3em;font-size:.88rem;margin-top:10px}.msg.err{color:var(--red)}.msg.ok{color:var(--ok)}
+
+/* auth */
+#auth{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr}
+.brand{background:linear-gradient(160deg,var(--deep),#0a2a33);color:#e7f1f3;padding:56px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.wordmark{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.4rem;color:#fff}
+.brand h1{font-size:2.5rem;line-height:1.15;color:#fff;max-width:14em;margin-bottom:18px}
+.brand p{color:#a9c4ca;max-width:30em;margin:0 0 28px}
+.points{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.points li{display:flex;gap:12px;align-items:flex-start;color:#cfe2e6}
+.points svg{margin-top:3px;color:#7fd1c1}
+.formside{display:flex;align-items:center;justify-content:center;padding:32px}
+.formbox{width:100%;max-width:370px}
+.formbox h2{font-size:1.7rem;margin-bottom:6px}.formbox .sub{color:var(--mute);margin:0 0 22px}
+.tabs{display:flex;gap:4px;background:#e4eaef;border-radius:9px;padding:4px;margin-bottom:22px}
+.tabs button{flex:1;border:0;background:transparent;padding:8px;border-radius:6px;cursor:pointer;color:var(--mute);font-weight:600}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* shell */
+.shell{display:flex;min-height:100vh}
+.side{width:236px;background:var(--deep);color:#cfe2e6;padding:22px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .wordmark{padding:0 8px 26px}
+.nav{display:grid;gap:4px}
+.nav button{display:flex;align-items:center;gap:11px;border:0;background:transparent;color:#a9c4ca;padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left}
+.nav button:hover{background:var(--deep2);color:#fff}.nav button.on{background:var(--deep2);color:#fff;font-weight:600}
+.me{margin-top:auto;padding:12px;border-top:1px solid #24596a;display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#7fd1c1;color:var(--deep);display:grid;place-items:center;font-weight:700}
+.me b{display:block;color:#fff;font-size:.9rem;line-height:1.2}.me small{color:#8fb0b8}
+.me .out{margin-left:auto;background:none;border:0;color:#8fb0b8;cursor:pointer}.me .out:hover{color:#fff}
+.content{flex:1;padding:34px 40px;max-width:1000px}
+.pagehead{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.pagehead h2{font-size:1.8rem}.pagehead span{color:var(--mute)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px}
+.panel h3{font-size:1.1rem;margin-bottom:14px}
+
+/* chat */
+#chat-box{height:min(52vh,460px);overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:4px 2px 12px}
+.turn{max-width:80%;white-space:pre-wrap;padding:11px 15px;border-radius:14px;line-height:1.5}
+.turn.you{align-self:flex-end;background:var(--deep);color:#fff;border-bottom-right-radius:4px}
+.turn.ai{align-self:flex-start;background:#f0f4f7;border-bottom-left-radius:4px}
+.turn.error{align-self:flex-start;background:#fdf1f0;color:var(--red)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.chip{display:inline-flex;gap:5px;align-items:center;font-size:.78rem;background:#fff;border:1px solid var(--line);border-radius:20px;padding:2px 10px;color:var(--teal-d)}
+.chip svg{width:13px;height:13px}
+.empty{margin:auto;text-align:center;color:var(--mute)}
+.empty h3{color:var(--ink);font-size:1.3rem;margin-bottom:6px}
+.sugg{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.sugg button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 14px;cursor:pointer;color:var(--ink)}.sugg button:hover{border-color:var(--teal);color:var(--teal-d)}
+.askbar{display:flex;gap:10px;border-top:1px solid var(--line);padding-top:16px}.askbar .field{margin:0;flex:1}
+
+/* docs */
+.stats{display:flex;gap:34px;margin-bottom:22px;flex-wrap:wrap}
+.stats div b{font-family:var(--serif);font-size:1.6rem;display:block;line-height:1.1}.stats div span{color:var(--mute);font-size:.85rem}
+.drop{display:block;border:1.5px dashed #b6c6cf;border-radius:12px;padding:26px;text-align:center;cursor:pointer;color:var(--mute);background:#f8fafb;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--teal);background:#eef8f6;color:var(--teal-d)}
+.drop input{display:none}.drop b{color:var(--ink)}
+.uprow{display:flex;gap:12px;align-items:flex-end;margin-top:14px;flex-wrap:wrap}.uprow .grow{flex:1;min-width:200px}.uprow .field{margin:0}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;color:var(--mute);font-weight:600;font-size:.82rem;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid #edf1f4;vertical-align:middle}tr:last-child td{border-bottom:0}
+.tag{display:inline-flex;gap:5px;align-items:center;border-radius:20px;padding:2px 10px;font-size:.78rem;background:#e6f4f1;color:var(--teal-d)}
+.tag.lock{background:var(--brass-bg);color:var(--brass)}.tag svg{width:12px;height:12px}
+.scroll{max-height:300px;overflow:auto}
+.askgrid{display:grid;grid-template-columns:1fr 250px;gap:20px;align-items:start}
+.scope h3{font-size:1rem;margin-bottom:10px}
+.scope-list{display:grid;gap:4px;max-height:430px;overflow:auto}
+.scope-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.88rem}
+.scope-item:hover{background:#f2f6f8}.scope-item.on{background:#e6f4f1;border-color:#bfe3dc;color:var(--teal-d);font-weight:600}
+.scope-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scope-item.lk svg{color:var(--brass)}
+.alert-panel{border-left:4px solid var(--brass)}
+.two{display:grid;grid-template-columns:1fr;gap:20px}
+.field-sm{padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:#fff;color:var(--ink)}
+.actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.two .panel{margin:0}
+
+@media(max-width:860px){
+#auth{grid-template-columns:1fr}.brand{padding:28px;gap:24px}.brand h1{font-size:1.8rem}
+.shell{flex-direction:column}.side{width:100%;height:auto;position:static;flex-direction:row;align-items:center;padding:10px 14px;gap:8px;flex-wrap:wrap}
+.side .wordmark{padding:0 8px 0 0}.nav{display:flex}.me{margin:0 0 0 auto;border:0;padding:0}.me div{display:none}
+.content{padding:20px 16px}.two{grid-template-columns:1fr}.askgrid{grid-template-columns:1fr}.scope{order:-1}.scope-list{max-height:170px}.turn{max-width:92%}}
+</style>
+</head>
+<body>
+<svg style="display:none"><defs>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+<symbol id="i-vault" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5V6M12 18v-2.5"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.5A8 8 0 1121 12z"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.6a3.5 3.5 0 010 6.8M18 14.2a6.5 6.5 0 013.5 5.8"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M9 4H5a2 2 0 00-2 2v12a2 2 0 002 2h4M16 8l4 4-4 4M20 12H9"/></symbol>
+</defs></svg>
+
+<!-- AUTH -->
+<div id="auth">
+  <section class="brand">
+    <div class="wordmark"><svg><use href="#i-vault"/></svg>VaultMind</div>
+    <div>
+      <h1>Ask your documents. Keep them private.</h1>
+      <p>Search company files in plain English. Every answer comes only from files you are cleared to read.</p>
+      <ul class="points">
+        <li><svg><use href="#i-lock"/></svg><span>Files and their searchable text are encrypted on disk.</span></li>
+        <li><svg><use href="#i-eye"/></svg><span>Confidential documents never reach people without admin access.</span></li>
+        <li><svg><use href="#i-shield"/></svg><span>Every login, upload and question is written to an audit log.</span></li>
+      </ul>
+    </div>
+    <small style="color:#7fa1a9">Internal use only</small>
+  </section>
+  <section class="formside"><div class="formbox">
+    <h2 id="auth-title">Welcome back</h2><p class="sub" id="auth-sub">Sign in to open your vault.</p>
+    <div class="tabs"><button id="tab-login" class="on" onclick="setMode('login')">Log in</button><button id="tab-reg" onclick="setMode('register')">Create account</button></div>
+    <label class="lbl" for="username">Username</label><input class="field" id="username" autocomplete="username">
+    <label class="lbl" for="password">Password</label><input class="field" id="password" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+    <button class="btn" id="auth-btn" style="width:100%;justify-content:center" onclick="submitAuth()">Log in</button>
+    <div class="msg" id="login-msg"></div>
+  </div></section>
+</div>
+
+<!-- APP -->
+<div class="shell hidden" id="app-view">
+  <aside class="side">
+    <div class="wordmark"><svg><use href="#i-vault"/></svg>VaultMind</div>
+    <nav class="nav">
+      <button data-v="ask" class="on" onclick="setView('ask')"><svg><use href="#i-chat"/></svg>Ask</button>
+      <button data-v="docs" onclick="setView('docs')"><svg><use href="#i-doc"/></svg>Documents</button>
+      <button data-v="admin" class="admin-only hidden" onclick="setView('admin')"><svg><use href="#i-users"/></svg>Admin</button>
+    </nav>
+    <small style="color:#6f98a2;padding:0 12px 8px;margin-top:auto">Build 1.5</small>
+    <div class="me" style="margin-top:0"><div class="avatar" id="avatar"></div><div><b id="who-name"></b><small id="who-role"></small></div>
+      <button class="out" title="Log out" onclick="logout()"><svg><use href="#i-out"/></svg></button></div>
+  </aside>
+
+  <main class="content">
+    <section id="view-ask">
+      <div class="pagehead"><h2>Ask your vault</h2><span id="scope-label">Searching all documents</span></div>
+      <div class="askgrid">
+        <div class="panel" style="margin:0">
+          <div id="chat-box"></div>
+          <div class="askbar"><input class="field" id="chat-input" placeholder="Ask a question about your documents"><button class="btn" onclick="sendChat()">Ask</button></div>
+        </div>
+        <aside class="panel scope" style="margin:0"><h3>Search in</h3><div class="scope-list" id="scope-list"></div></aside>
+      </div>
+    </section>
+
+    <section id="view-docs" class="hidden">
+      <div class="pagehead"><h2>Documents</h2><span id="doc-sub"></span></div>
+      <div class="stats"><div><b id="st-docs">0</b><span>documents</span></div><div class="admin-only hidden"><b id="st-conf">0</b><span>confidential</span></div><div><b id="st-chunks">0</b><span>searchable passages</span></div></div>
+      <div class="panel">
+        <label class="drop" id="drop"><input type="file" id="file-input" accept=".txt,.md,.csv,.pdf,.docx">
+          <svg style="width:26px;height:26px"><use href="#i-doc"/></svg><div id="drop-text"><b>Drop a file here</b> or click to browse<br><small>PDF, DOCX, TXT, MD, CSV up to 10 MB</small></div></label>
+        <div class="uprow">
+          <div class="grow hidden" id="access-wrap"><label class="lbl" for="access-level">Who can read it</label>
+            <select class="field" id="access-level"></select></div>
+          <button class="btn" onclick="uploadFile()"><svg><use href="#i-lock"/></svg>Encrypt and index</button>
+        </div>
+        <div class="msg" id="upload-msg"></div>
+      </div>
+      <div class="panel"><h3>Library</h3>
+        <table><thead><tr><th>File</th><th>Access</th><th>Added by</th><th></th></tr></thead><tbody id="doc-rows"></tbody></table>
+        <div class="msg" id="doc-empty"></div></div>
+    </section>
+
+    <section id="view-admin" class="hidden">
+      <div class="pagehead"><h2>Administration</h2><span>People and activity</span></div>
+      <div class="panel"><h3>System</h3><div class="stats" id="sys-stats" style="margin:0"></div></div>
+      <div class="panel alert-panel"><h3 id="alert-title">Blocked attempts</h3>
+        <table><thead><tr><th>Time</th><th>User</th><th>Asked about restricted content</th></tr></thead><tbody id="alert-rows"></tbody></table>
+        <div class="msg" id="alert-msg"></div></div>
+      <div class="two">
+        <div class="panel"><h3>People</h3><table><thead><tr><th>User</th><th>Role</th><th>Department</th><th>Actions</th></tr></thead><tbody id="user-rows"></tbody></table><div class="msg" id="user-msg"></div></div>
+        <div class="panel"><h3>Audit log</h3><div class="scroll"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead><tbody id="audit-rows"></tbody></table></div>
+          <div class="actions" style="margin-top:12px"><button class="btn ghost sm" onclick="loadAudit()">Refresh</button><button class="btn ghost sm" onclick="downloadAudit()">Download full log (CSV)</button></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let token=sessionStorage.getItem("token"),me=null,mode="login",scope=null,docsCache=[];
+const SUGG=["What is the leave policy?","What are the working hours?","Who approves expenses?"];
+
+function el(t,text,cls){const e=document.createElement(t);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e}
+function icon(id){const s=document.createElementNS("http://www.w3.org/2000/svg","svg");const u=document.createElementNS("http://www.w3.org/2000/svg","use");u.setAttribute("href","#"+id);s.append(u);return s}
+function setMsg(id,t,k){const m=$(id);m.textContent=t;m.className="msg "+(k||"")}
+function errText(d){if(!d)return"";if(typeof d.detail==="string")return d.detail;if(Array.isArray(d.detail))return d.detail.map(x=>x.msg).join("; ");return""}
+
+async function api(path,opts={}){
+  opts.headers={...(opts.headers||{}),...(token?{Authorization:"Bearer "+token}:{})};
+  let r;try{r=await fetch(path,opts)}catch{throw new Error("Cannot reach the server.")}
+  let d=null;try{d=await r.json()}catch{}
+  if(r.status===401&&token){logout();throw new Error("Session expired. Please log in again.")}
+  if(!r.ok){const er=new Error(errText(d)||"Request failed ("+r.status+")");er.status=r.status;er.data=d;throw er}
+  return d}
+
+/* auth */
+function setMode(m){mode=m;const reg=m==="register";
+  $("tab-login").classList.toggle("on",!reg);$("tab-reg").classList.toggle("on",reg);
+  $("auth-title").textContent=reg?"Create your account":"Welcome back";
+  $("auth-sub").textContent=reg?"New accounts start as standard users.":"Sign in to open your vault.";
+  $("auth-btn").textContent=reg?"Create account":"Log in";setMsg("login-msg","")}
+async function submitAuth(){
+  const u=$("username").value.trim(),p=$("password").value;
+  try{
+    if(mode==="register")await api("/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:u,password:p})});
+    const d=await api("/auth/login",{method:"POST",body:new URLSearchParams({username:u,password:p})});
+    token=d.access_token;sessionStorage.setItem("token",token);$("password").value="";setMsg("login-msg","");await showApp();
+  }catch(e){setMsg("login-msg",e.message,"err")}}
+$("password").addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth()});
+function logout(){token=null;me=null;scope=null;docsCache=[];sessionStorage.removeItem("token");
+  $("app-view").classList.add("hidden");$("auth").classList.remove("hidden");$("chat-box").replaceChildren()}
+
+/* navigation */
+function setView(v){["ask","docs","admin"].forEach(n=>$("view-"+n).classList.toggle("hidden",n!==v));
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  if(v==="docs")loadDocs();if(v==="admin"){loadStatus();loadAlerts();loadUsers();loadAudit()}}
+async function showApp(){
+  me=await api("/auth/me");
+  $("auth").classList.add("hidden");$("app-view").classList.remove("hidden");
+  $("who-name").textContent=me.username;$("who-role").textContent=me.role==="admin"?"Administrator":"Standard user";
+  $("avatar").textContent=me.username[0].toUpperCase();
+  document.querySelectorAll(".admin-only").forEach(e=>e.classList.toggle("hidden",me.role!=="admin"));
+  fillAccessOptions();
+  $("doc-sub").textContent=me.role==="admin"?"You can see every document.":"You can see documents shared with everyone"+(me.department?" and the "+me.department+" department.":".");
+  resetChat();setView("ask");loadDocs()}
+
+/* search scope */
+function setScope(id){
+  scope=id;const d=docsCache.find(x=>x.id===id);
+  $("scope-label").textContent=d?"Searching only "+d.filename:"Searching all documents";
+  $("chat-input").placeholder=d?"Ask about "+d.filename:"Ask a question about your documents";
+  const list=$("scope-list");list.replaceChildren();
+  const mk=(sid,label,ic,locked)=>{const b=el("button","","scope-item"+(scope===sid?" on":"")+(locked?" lk":""));
+    b.title=label;b.append(icon(ic),el("span",label));b.onclick=()=>setScope(sid);list.append(b)};
+  mk(null,"All documents ("+docsCache.length+")","i-vault",false);
+  docsCache.forEach(x=>mk(x.id,x.filename,iconFor(x.access_level),x.access_level==="admin"));
+}
+
+/* chat */
+function resetChat(){const box=$("chat-box");box.replaceChildren();
+  const e=el("div","","empty");e.append(el("h3","What would you like to know?"),el("div","Ask in plain English. I only use files you are allowed to read."));
+  const s=el("div","","sugg");SUGG.forEach(q=>{const b=el("button",q);b.onclick=()=>{$("chat-input").value=q;sendChat()};s.append(b)});
+  e.append(s);box.append(e)}
+function addTurn(kind,text,sources){
+  const box=$("chat-box");const emp=box.querySelector(".empty");if(emp)emp.remove();
+  const t=el("div",text,"turn "+kind);
+  if(sources&&sources.length){const c=el("div","","chips");sources.forEach(s=>{const ch=el("span","","chip");ch.append(icon("i-doc"),document.createTextNode(s));c.append(ch)});t.append(c)}
+  box.append(t);box.scrollTop=box.scrollHeight;return t}
+async function sendChat(){
+  const input=$("chat-input"),q=input.value.trim();if(!q)return;
+  addTurn("you",q);input.value="";const wait=addTurn("ai","Searching the vault...");
+  try{const d=await api("/documents/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q,doc_id:scope})});
+    wait.remove();addTurn("ai",d.answer,d.sources)}
+  catch(e){wait.remove();addTurn("error",e.message)}}
+$("chat-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
+
+/* documents */
+const fi=$("file-input"),drop=$("drop");
+function showPicked(){$("drop-text").replaceChildren(fi.files[0]?el("b",fi.files[0].name):el("b","Drop a file here"))}
+fi.addEventListener("change",showPicked);
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over")}));
+drop.addEventListener("drop",e=>{if(e.dataTransfer.files.length){fi.files=e.dataTransfer.files;showPicked()}});
+
+async function uploadFile(confirmed){
+  const f=fi.files[0];if(!f)return setMsg("upload-msg","Choose a file first.","err");
+  const fd=new FormData();fd.append("file",f);fd.append("access_level",$("access-wrap").classList.contains("hidden")?"standard":$("access-level").value);
+  if(confirmed===true)fd.append("confirm_sensitive","true");
+  setMsg("upload-msg","Encrypting and scanning...");
+  try{const d=await api("/documents/upload",{method:"POST",body:fd});
+    let m="Indexed "+d.chunks_indexed+" passages from "+d.filename+".";
+    if(d.auto_protected)m+=" Sensitive content found ("+d.findings.join(", ")+"), so it was locked to admins for review.";
+    setMsg("upload-msg",m,"ok");fi.value="";showPicked();loadDocs()}
+  catch(e){
+    if(e.status===409&&e.data&&e.data.sensitive){
+      if(confirm(e.message+"\n\nUpload it visible to EVERYONE anyway?"))return uploadFile(true);
+      setMsg("upload-msg","Upload cancelled. Choose 'Admins only' to keep it protected.","err");
+    }else setMsg("upload-msg",e.message,"err")}}
+function accessLabel(l){return l==="standard"?"Everyone":l==="admin"?"Admins only":l.startsWith("dept:")?l.slice(5)+" only":l}
+function iconFor(l){return l==="standard"?"i-doc":l==="admin"?"i-lock":"i-users"}
+function accessOptions(){
+  const o=[["standard","Everyone"]];
+  if(me.role==="admin"){o.push(["admin","Admins only (confidential)"]);(me.departments||[]).forEach(d=>o.push(["dept:"+d,d+" department only"]))}
+  else if(me.department)o.push(["dept:"+me.department,me.department+" department only"]);
+  return o}
+function fillAccessOptions(){
+  const sel=$("access-level");sel.replaceChildren();const o=accessOptions();
+  o.forEach(([v,t])=>{const op=el("option",t);op.value=v;sel.append(op)});
+  $("access-wrap").classList.toggle("hidden",o.length<2)}
+
+async function loadDocs(){
+  const rows=$("doc-rows"),out=[];
+  try{const docs=await api("/documents/");
+    docsCache=docs;if(scope!==null&&!docs.some(x=>x.id===scope))scope=null;setScope(scope);
+    $("st-docs").textContent=docs.length;$("st-conf").textContent=docs.filter(d=>d.access_level!=="standard").length;
+    $("st-chunks").textContent=docs.reduce((a,d)=>a+(d.chunks||0),0);
+    setMsg("doc-empty",docs.length?"":"No documents yet. Upload one above.");
+    for(const d of docs){const tr=el("tr");tr.append(el("td",d.filename));
+      const a=el("td"),tag=el("span","","tag"+(d.access_level==="admin"?" lock":""));
+      tag.append(icon(iconFor(d.access_level)),document.createTextNode(accessLabel(d.access_level)));a.append(tag);
+      const o=el("td",d.owner),x=el("td"),box=el("div","","actions");
+      const ab=el("button","Ask","btn ghost sm");ab.onclick=()=>{setScope(d.id);setView("ask")};box.append(ab);
+      if(me.role==="admin"){
+        const sel=el("select","","field-sm");sel.title="Change who can read this file";
+        accessOptions().forEach(([v,t])=>{const op=el("option",t);op.value=v;sel.append(op)});sel.value=d.access_level;
+        sel.onchange=()=>setAccess(d.id,sel.value);box.append(sel);
+        const b=el("button","Delete","btn danger sm");b.onclick=()=>delDoc(d.id,d.filename);box.append(b)}
+      x.append(box);tr.append(a,o,x);out.push(tr)}
+    rows.replaceChildren(...out)
+  }catch(e){setMsg("doc-empty",e.message,"err")}}
+async function setAccess(id,level){
+  try{await api("/documents/"+id+"/access",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_level:level})});loadDocs()}catch(e){alert(e.message)}}
+async function delDoc(id,name){
+  if(!confirm("Delete "+name+" and its indexed content?"))return;
+  try{await api("/documents/"+id,{method:"DELETE"});loadDocs()}catch(e){alert(e.message)}}
+
+/* admin */
+async function loadUsers(){
+  const rows=$("user-rows"),out=[];
+  const call=async(path,method,body,ok)=>{
+    try{await api(path,{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
+      await loadUsers();setMsg("user-msg",ok||"","ok");loadAudit();loadStatus()}
+    catch(e){setMsg("user-msg",e.message,"err")}};
+  try{for(const u of await api("/auth/users")){
+    const base="/auth/users/"+encodeURIComponent(u.username);
+    const tr=el("tr"),r=el("td"),dp=el("td"),x=el("td");
+    r.append(el("span",u.role==="admin"?"Administrator":"Standard","tag"));
+    if(u.active===false){const dt=el("span","Disabled","tag lock");dt.style.marginLeft="6px";r.append(dt)}
+    const sel=el("select","","field-sm");
+    [["","None"],...(me.departments||[]).map(d=>[d,d])].forEach(([v,t])=>{const op=el("option",t);op.value=v;sel.append(op)});
+    sel.value=u.department||"";sel.onchange=()=>call(base+"/department","PUT",{department:sel.value},"Department updated.");dp.append(sel);
+    if(u.username!==me.username){
+      const box=el("div","","actions"),to=u.role==="admin"?"standard":"admin";
+      const b1=el("button",to==="admin"?"Make admin":"Make standard","btn ghost sm");b1.onclick=()=>call(base+"/role","PUT",{role:to},"Role updated.");
+      const b2=el("button",u.active===false?"Activate":"Deactivate","btn ghost sm");b2.onclick=()=>call(base+"/active","PUT",{active:u.active===false},"Account updated.");
+      const b3=el("button","Reset password","btn ghost sm");b3.onclick=()=>{const p=prompt("New password for "+u.username+" (8-72 characters):");if(p)call(base+"/password","PUT",{password:p},"Password reset for "+u.username+".")};
+      const b4=el("button","Delete","btn danger sm");b4.onclick=()=>{if(confirm("Delete user "+u.username+"? This cannot be undone."))call(base,"DELETE",null,"User deleted.")};
+      box.append(b1,b2,b3,b4);x.append(box)}
+    tr.append(el("td",u.username),r,dp,x);out.push(tr)}
+    rows.replaceChildren(...out)
+  }catch(e){setMsg("user-msg",e.message,"err")}}
+async function loadAudit(){
+  const rows=$("audit-rows");rows.replaceChildren();
+  try{for(const r of await api("/documents/audit")){const tr=el("tr");
+      [r.time,r.user,r.action,r.detail].forEach(v=>tr.append(el("td",v||"")));rows.append(tr)}}catch{}}
+
+async function downloadAudit(){
+  try{const r=await fetch("/documents/audit/export",{headers:{Authorization:"Bearer "+token}});
+    if(!r.ok)throw new Error("Download failed ("+r.status+")");
+    const url=URL.createObjectURL(await r.blob()),a=document.createElement("a");
+    a.href=url;a.download="vaultmind_audit.csv";document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url)}
+  catch(e){alert(e.message)}}
+async function loadStatus(){
+  const box=$("sys-stats");box.replaceChildren();
+  try{const s=await api("/documents/status");
+    [[s.ai_mode,"AI engine"+(s.model!=="-"?" ("+s.model+")":"")],[s.documents,"documents"],[s.confidential,"confidential"],[s.users,"users"],[s.blocked_attempts,"blocked attempts"]]
+    .forEach(([v,l])=>{const d=el("div");d.append(el("b",String(v)),el("span",l));box.append(d)})}catch{}}
+async function loadAlerts(){
+  const rows=$("alert-rows");rows.replaceChildren();
+  try{const list=await api("/documents/audit?action=access_denied&limit=20");
+    $("alert-title").textContent="Blocked attempts ("+list.length+")";
+    setMsg("alert-msg",list.length?"":"No one has tried to read restricted content.");
+    for(const r of list){const tr=el("tr");[r.time,r.user,r.detail].forEach(v=>tr.append(el("td",v||"")));rows.append(tr)}}
+  catch(e){setMsg("alert-msg",e.message,"err")}}
+
+if(token)showApp().catch(()=>logout());
+</script>
+</body>
+</html>
